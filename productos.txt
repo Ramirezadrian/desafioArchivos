@@ -1,0 +1,17 @@
+[
+    {
+        tittle : 'escuadra',
+        price : 55,
+        thumbnail : 'rutadeimagen'
+    },
+    {
+        tittle : 'regla',
+        price : 15,
+        thumbnail : 'rutadeimagen'
+    },
+    {
+        tittle : 'lapiz',
+        price : 20,
+        thumbnail : 'rutadeimagen'
+    }
+]
