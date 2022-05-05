@@ -7,91 +7,97 @@ class Contenedor{
 
     
 
-    save(object){
-        try{
-            fs.promises.readFile(this.nombreArchivo, 'utf-8')
-            .then((productosStr) => {
-              //  const productosObj = JSON.parse(productosStr)
-                if(productos.lenght != 0 ){
-                    const nuevoProducto = productos.map((element, index) => {
-                        const id = index + 1
-                        
-                        element.id = id
-                        fs.promises.appendFile(this.nombreArchivo, element)
-                      })
-                      const id = productos.lenght +1;
-                      object.id = id
-                      fs.promises.appendFile(this.nombreArchivo, object)
-                    
-                }else{
-                    object.id = 1;
-                    fs.promises.writeFile(this.nombreArchivo,object)
-
-                }
-             })
+   async save(object){
+       let data
        
-        }
-        catch(err){
-
-        }
-    }
-
-    getById(id){
         try{
-        fs.promises.readFile(this.nombreArchivo, 'utf-8')
-            .then((productos) => {
-            //    const productosObj = JSON.parse(productosStr)
-                const object = productos.find((element, id) => {
-                const isMatch = element.id === id
-                    console.log(isMatch)
-                  })
-            })
+            data  = await fs.promises.readFile(`./${this.nombreArchivo}`, 'utf-8') //leo archivo
+            data = JSON.parse(data)
+        } catch (err) {
+            data = []
         }
-        catch(err){}
-    
+
+        const lastProduct = data[data.length - 1] //conozco la posicion del ultimo elemento
+
+        let id = 1
+
+        if (lastProduct) { // si hay productos le sumo uno al id
+             id = lastProduct.id + 1
+        }
+        object.id = id
+
+        data.push(object) //agrego producto
+
+        return fs.promises.writeFile(`./${this.nombreArchivo}`, JSON.stringify(data, null, 2)) //save del producto nuevo
+
+  }
+
+    async getById(id){
+        let data
+        try{
+            data = await fs.promises.readFile(`./${this.nombreArchivo}`, 'utf-8')
+            data = JSON.parse(data)            
+        }
+        catch(err){ data = []}
+        
+        return data.find(prod => prod.id === id)
     }
  
-    getAll(){
+    async getAll(){
+        let data
         try{
-            fs.promises.readFile(this.nombreArchivo, 'utf-8')
-                .then((productos) => {
-                   // const productosObj = JSON.parse(productosStr)
-                        console.log(productos)
-                      })
-                
-            }
-            catch(err){}
+            data = await fs.promises.readFile(`./${this.nombreArchivo}`, 'utf-8')
+            data = JSON.parse(data)
+         } catch(err){data = []}
+
+         return data
     }
 
-    deleteById(id){
+    async deleteById(id){
+        let data
         try{
-            fs.promises.readFile(this.nombreArchivo, 'utf-8')
-                .then((productos) => {
-                   // const productosObj = JSON.parse(productosStr)
-                    const nuevaLista = productos.filter(p =>{
-                        p.id !== id;
-                    })
-                      })
-                      console.log(nuevaLista)
-            fs.writeFileAsyn(this.nombreArchivo, nuevaLista)
-            
+            data = await fs.promises.readFile(`./${this.nombreArchivo}`, 'utf-8')
+            data = JSON.parse(data)
                 
-            }
-            catch(err){}
+            }catch(err){data = []}
+        const newList = data.find(prod => prod.id !== id)
+        return fs.promises.writeFile(`./${this.nombreArchivo}`,JSON.stringify(newList, null, 2))
     }
 
-    deleteAll(){
-    fs.unlink(this.nombreArchivo, error =>{
-        if(error){
-            console.log("No se pudo borrar")
-        }else{
-            console.log("Archivo borrado")
-        }
-    })
+    async deleteAll(){
+        return fs.promises.writeFile(`./${this.nombreArchivo}`,'')
     }
 }
 
 
-const nuevo = new Contenedor('./productos.txt')
+;(async () => {
 
-nuevo.getAll()
+    
+
+    const contenedor = new Contenedor('productos.txt')
+    
+    const newProduct = {
+      title: 'Product 1',
+      price: 10.0,
+      thumbnail: 'https://image.com'
+    }
+    const newProduct2 = {
+        title: 'Product 2',
+        price: 10.0,
+        thumbnail: 'https://image2.com'
+      }
+   
+    await contenedor.save(newProduct)
+    await contenedor.save(newProduct2)
+  
+    const product = await contenedor.getById(1)
+    console.log(product)
+  
+  
+    const products = await contenedor.getAll()
+    console.log(products)
+  
+    await contenedor.deleteById(19)
+  
+    await contenedor.deleteAll()
+   })()
